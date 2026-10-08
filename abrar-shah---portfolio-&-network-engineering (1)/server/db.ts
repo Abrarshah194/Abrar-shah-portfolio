@@ -1,0 +1,597 @@
+import fs from 'fs';
+import path from 'path';
+import bcrypt from 'bcryptjs';
+import type {
+  PortfolioData,
+  User,
+  ContactMessage,
+  MediaItem,
+  Profile,
+  Education,
+  Experience,
+  Skill,
+  Service,
+  Project,
+  Certificate,
+  BlogPost,
+  Testimonial,
+  SocialLink,
+  SiteSettings
+} from '../src/types';
+
+interface DatabaseSchema extends PortfolioData {
+  users: (User & { passwordHash: string })[];
+  messages: ContactMessage[];
+  media: MediaItem[];
+}
+
+const DATA_DIR = path.resolve(process.cwd(), 'data');
+const DB_FILE = path.join(DATA_DIR, 'database.json');
+const UPLOADS_DIR = path.resolve(process.cwd(), 'uploads');
+
+// Ensure directories exist
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+function getInitialDatabase(): DatabaseSchema {
+  // Default password: Admin@123456
+  const salt = bcrypt.genSaltSync(10);
+  const passwordHash = bcrypt.hashSync('Admin@123456', salt);
+
+  const initialProfile: Profile = {
+    id: 'profile-1',
+    name: 'Abrar Shah',
+    displayName: 'Abrar Shah',
+    brandName: 'EXPORTON NETWORKS',
+    title: 'Computer Science Student & Networking Enthusiast',
+    headline: 'BS Computer Science student passionate about computer networking, network infrastructure, troubleshooting, automation and modern IT technologies.',
+    shortBio: 'Enthusiastic Computer Science undergraduate at AWKUM with an outstanding 3.87 CGPA, dedicated to mastering enterprise computer networking, routing protocols, switching, and network automation.',
+    fullBio: 'I am Abrar Shah, a Computer Science student at Abdul Wali Khan University Mardan (AWKUM) maintaining a 3.87 CGPA. Under the professional banner of EXPORTON NETWORKS, I focus on network infrastructure engineering, packet analysis, Cisco and Huawei networking paradigms, and modern automation. With a solid foundation spanning FSc Pre-Medical (A1 Grade, 918/1100), Matric Science (Grade A, 868/1100), and a Diploma in Information Technology (DIT, Grade A, 753), my ambition is to build scalable, resilient corporate and campus network architectures.',
+    location: 'Village Babuzai, Tehsil Katlang, District Mardan, Khyber Pakhtunkhwa, Pakistan',
+    email: 'abrarshah2134896@gmail.com',
+    phone: '+92 310 1905776',
+    whatsapp: '+92 310 1905776',
+    avatarUrl: '/abrar-shah.jpg',
+    resumeUrl: '',
+    statusTagline: 'Open for Network Engineering Internships & Collaborative IT Projects',
+    primaryGoal: 'Build an impactful career in network engineering, enterprise infrastructure, network automation, and IT solutions.',
+    drivingLicense: 'Motor Car Driving with LTV License (2 Years Experience)',
+    interests: ['Computer Networking', 'Technical Reading', 'Vlog & Video Creation', 'Traveling', 'Infrastructure Automation'],
+    cgpa: '3.87',
+    updatedAt: new Date().toISOString()
+  };
+
+  const initialEducation: Education[] = [
+    {
+      id: 'edu-1',
+      degree: 'BS Computer Science',
+      institution: 'Abdul Wali Khan University Mardan (AWKUM)',
+      fieldOfStudy: 'Computer Science & Networking',
+      cgpa: '3.87',
+      startYear: '2023',
+      endYear: '2027',
+      isCurrent: true,
+      description: 'Undergraduate studies emphasizing Data Communication, Computer Networks, Operating Systems, Algorithms, and System Architecture.',
+      order: 1
+    },
+    {
+      id: 'edu-2',
+      degree: 'Diploma in Information Technology (DIT)',
+      institution: 'Khyber Pakhtunkhwa Board of Technical Education',
+      fieldOfStudy: 'Information Technology & Applied Computing',
+      marks: '753',
+      grade: 'Grade A',
+      startYear: '2023',
+      endYear: '2024',
+      isCurrent: false,
+      description: 'Comprehensive technical diploma covering computer hardware, networking basics, office suites, and database fundamentals.',
+      order: 2
+    },
+    {
+      id: 'edu-3',
+      degree: 'FSc Pre-Medical',
+      institution: 'Essar College of Sciences Katlang',
+      fieldOfStudy: 'Pre-Medical Sciences',
+      marks: '918',
+      totalMarks: '1100',
+      grade: 'Grade A1',
+      startYear: '2021',
+      endYear: '2023',
+      isCurrent: false,
+      description: 'Higher secondary school certificate completed with distinction (A1 Grade - 918/1100 marks).',
+      order: 3
+    },
+    {
+      id: 'edu-4',
+      degree: 'Matriculation (Science)',
+      institution: 'BISE Mardan',
+      fieldOfStudy: 'Science',
+      marks: '868',
+      totalMarks: '1100',
+      grade: 'Grade A',
+      startYear: '2019',
+      endYear: '2021',
+      isCurrent: false,
+      description: 'Secondary School Certificate with Grade A (868/1100 marks).',
+      order: 4
+    }
+  ];
+
+  const initialExperience: Experience[] = [
+    {
+      id: 'exp-1',
+      jobTitle: 'Networking & IT Practical Specialist / Learner',
+      company: 'Exporton Networks / Independent Lab Infrastructure',
+      location: 'Mardan, Pakistan',
+      startDate: '2023',
+      endDate: 'Present',
+      isCurrent: true,
+      description: 'Hands-on network configuration, lab simulations in Cisco Packet Tracer & GNS3, VLAN design, Inter-VLAN routing, OSPF configuration, DHCP/NAT deployments, and network diagnostic troubleshooting.',
+      skills: ['Packet Tracer', 'GNS3', 'VLAN', 'OSPF', 'NAT', 'DHCP', 'Subnetting', 'Network Troubleshooting'],
+      order: 1
+    },
+    {
+      id: 'exp-2',
+      jobTitle: 'Licensed Driver (LTV)',
+      company: 'Independent / Regional Logistics',
+      location: 'Khyber Pakhtunkhwa, Pakistan',
+      startDate: '2022',
+      endDate: '2024',
+      isCurrent: false,
+      description: 'Professional motor vehicle operation holding official LTV (Light Transport Vehicle) license with 2 years of proven safe driving record, route management, and vehicle upkeep.',
+      skills: ['LTV License', 'Time Management', 'Navigation', 'Safety Compliance'],
+      order: 2
+    }
+  ];
+
+  const initialSkills: Skill[] = [
+    // Networking
+    { id: 'sk-1', name: 'Computer Networking Fundamentals', category: 'Networking', proficiency: 92, isFeatured: true, order: 1 },
+    { id: 'sk-2', name: 'Network Troubleshooting & Wireshark', category: 'Networking', proficiency: 88, isFeatured: true, order: 2 },
+    { id: 'sk-3', name: 'VLAN & Trunking (802.1Q)', category: 'Networking', proficiency: 85, isFeatured: true, order: 3 },
+    { id: 'sk-4', name: 'STP (Spanning Tree Protocol)', category: 'Networking', proficiency: 80, isFeatured: false, order: 4 },
+    { id: 'sk-5', name: 'OSPF Routing Protocol', category: 'Networking', proficiency: 84, isFeatured: true, order: 5 },
+    { id: 'sk-6', name: 'ACL (Access Control Lists)', category: 'Networking', proficiency: 82, isFeatured: false, order: 6 },
+    { id: 'sk-7', name: 'NAT & PAT Configuration', category: 'Networking', proficiency: 86, isFeatured: false, order: 7 },
+    { id: 'sk-8', name: 'DHCP & DNS Services', category: 'Networking', proficiency: 90, isFeatured: true, order: 8 },
+    { id: 'sk-9', name: 'VPN Fundamentals', category: 'Networking', proficiency: 75, isFeatured: false, order: 9 },
+    { id: 'sk-10', name: 'Network Monitoring (SNMP/LibreNMS)', category: 'Networking', proficiency: 78, isFeatured: true, order: 10 },
+    { id: 'sk-11', name: 'CCNA Knowledge Path', category: 'Networking', proficiency: 85, isFeatured: true, order: 11 },
+    { id: 'sk-12', name: 'CCNP Learning Path', category: 'Networking', proficiency: 65, isFeatured: false, order: 12 },
+    { id: 'sk-13', name: 'Huawei Networking Learning Path', category: 'Networking', proficiency: 70, isFeatured: false, order: 13 },
+
+    // Programming
+    { id: 'sk-14', name: 'Python for Network Automation', category: 'Programming', proficiency: 76, isFeatured: true, order: 14 },
+    { id: 'sk-15', name: 'HTML5 & Modern CSS3', category: 'Programming', proficiency: 85, isFeatured: false, order: 15 },
+    { id: 'sk-16', name: 'JavaScript & TypeScript', category: 'Programming', proficiency: 78, isFeatured: false, order: 16 },
+    { id: 'sk-17', name: 'React & Frontend Architecture', category: 'Programming', proficiency: 74, isFeatured: false, order: 17 },
+    { id: 'sk-18', name: 'Node.js & REST APIs', category: 'Programming', proficiency: 72, isFeatured: false, order: 18 },
+
+    // Tools
+    { id: 'sk-19', name: 'Cisco Packet Tracer', category: 'Tools', proficiency: 92, isFeatured: true, order: 19 },
+    { id: 'sk-20', name: 'GNS3 Simulation Lab', category: 'Tools', proficiency: 80, isFeatured: true, order: 20 },
+    { id: 'sk-21', name: 'Visual Studio Code', category: 'Tools', proficiency: 88, isFeatured: false, order: 21 },
+    { id: 'sk-22', name: 'Git & GitHub Version Control', category: 'Tools', proficiency: 80, isFeatured: false, order: 22 },
+
+    // Office
+    { id: 'sk-23', name: 'Microsoft Word', category: 'Office', proficiency: 94, isFeatured: false, order: 23 },
+    { id: 'sk-24', name: 'Microsoft Excel', category: 'Office', proficiency: 86, isFeatured: false, order: 24 },
+    { id: 'sk-25', name: 'Microsoft PowerPoint', category: 'Office', proficiency: 92, isFeatured: false, order: 25 },
+
+    // Design
+    { id: 'sk-26', name: 'Adobe Photoshop', category: 'Design', proficiency: 82, isFeatured: false, order: 26 },
+    { id: 'sk-27', name: 'AutoCAD', category: 'Design', proficiency: 70, isFeatured: false, order: 27 }
+  ];
+
+  const initialServices: Service[] = [
+    {
+      id: 'srv-1',
+      title: 'Enterprise Network Configuration',
+      slug: 'network-configuration',
+      iconName: 'Network',
+      shortDescription: 'Topology design, router and switch configuration, VLAN segmentation, and routing table optimization.',
+      fullDescription: 'Comprehensive configuration of L2/L3 switches and routers. Implementation of VLANs, 802.1Q trunking, Spanning Tree Protocol (STP), and dynamic routing protocols (OSPF, RIP).',
+      features: ['Router & Switch Setup', 'VLAN & Subnet Partitioning', 'OSPF & Static Routing', 'DHCP & NAT Gateway Config'],
+      isActive: true,
+      order: 1
+    },
+    {
+      id: 'srv-2',
+      title: 'Network Troubleshooting & Diagnostics',
+      slug: 'network-troubleshooting',
+      iconName: 'Activity',
+      shortDescription: 'Root-cause analysis of connectivity drops, latency, broadcast storms, and routing loops.',
+      fullDescription: 'Systematic troubleshooting using packet capture analysis, ping/traceroute sweeps, ACL debugging, and ARP resolution to eliminate downtime in enterprise environments.',
+      features: ['Packet Capture & Inspection', 'Routing Table Verification', 'VLAN & Port Security Audit', 'Latency & Loss Remediation'],
+      isActive: true,
+      order: 2
+    },
+    {
+      id: 'srv-3',
+      title: 'Network Monitoring & Health Telemetry',
+      slug: 'network-monitoring',
+      iconName: 'Server',
+      shortDescription: 'Setup of real-time device health metrics, SNMP queries, and automated alerts for proactive maintenance.',
+      fullDescription: 'Configuring network telemetry dashboards using LibreNMS, Grafana, and SNMP agents to detect interface link drops, CPU spikes, and bandwidth bottlenecks before users are impacted.',
+      features: ['SNMP Polling Setup', 'Bandwidth Utilization Alerts', 'Device Uptime Dashboards', 'Threshold Notifications'],
+      isActive: true,
+      order: 3
+    },
+    {
+      id: 'srv-4',
+      title: 'Computer & IT Infrastructure Support',
+      slug: 'it-support',
+      iconName: 'Wrench',
+      shortDescription: 'Hardware diagnostics, OS configuration, office productivity deployment, and endpoint security.',
+      fullDescription: 'Hands-on IT technical support encompassing workstation staging, operating systems setup, local network printer sharing, hardware repairs, and peripheral setup.',
+      features: ['Hardware & OS Maintenance', 'Endpoint Security Config', 'Network Printer & File Sharing', 'DIT Certified Standards'],
+      isActive: true,
+      order: 4
+    },
+    {
+      id: 'srv-5',
+      title: 'Modern Web & Portfolio Development',
+      slug: 'web-development',
+      iconName: 'Globe',
+      shortDescription: 'Responsive, fast, and secure web applications built with TypeScript, React, and REST backends.',
+      fullDescription: 'Clean, production-ready web development following domain-native typography, responsive flex/grid layouts, SEO metadata, and full-stack REST API integrations.',
+      features: ['Modern React & TypeScript', 'Responsive Mobile-First UI', 'RESTful Backend APIs', 'Production Deployment Ready'],
+      isActive: true,
+      order: 5
+    }
+  ];
+
+  const initialProjects: Project[] = [
+    {
+      id: 'proj-1',
+      title: 'Automated Network Device Configuration & Monitoring',
+      slug: 'automated-network-config-monitoring',
+      category: 'Networking & Automation',
+      shortDescription: 'Hands-on lab project automating Cisco multi-device configuration provisioning, backup verification, and telemetry alerting.',
+      fullDescription: 'A practical networking automation lab designed to streamline router and switch deployment across enterprise topologies. Leverages Python scripts with Netmiko to push standardized ACL, VLAN, and OSPF configurations, collects running configuration backups, and hooks into LibreNMS/Grafana for live interface monitoring. Integrated with a Telegram bot for real-time link-down notifications.',
+      imageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80',
+      gallery: [
+        'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80'
+      ],
+      technologies: ['Python', 'Netmiko', 'Ansible', 'GNS3', 'LibreNMS', 'Grafana', 'InfluxDB', 'Telegram Bot API'],
+      githubUrl: '',
+      liveUrl: '',
+      features: [
+        'Batch provisioning of VLAN and OSPF configs across multiple virtual routers in GNS3',
+        'Automated running-config snapshot backup to centralized archive',
+        'SNMP telemetry metrics visualized in Grafana dashboards',
+        'Telegram bot notification dispatch upon simulated link failure'
+      ],
+      status: 'Learning Project',
+      isFeatured: true,
+      startDate: '2024-03',
+      endDate: 'Present',
+      order: 1
+    },
+    {
+      id: 'proj-2',
+      title: 'Enterprise Multi-VLAN Campus Network Simulation',
+      slug: 'enterprise-multi-vlan-campus-network',
+      category: 'Networking',
+      shortDescription: 'Hierarchical 3-tier campus network topology simulation with redundancy, Inter-VLAN routing, and ACL security.',
+      fullDescription: 'Simulated campus network built in Cisco Packet Tracer and GNS3 consisting of Core, Distribution, and Access layers. Configured with Rapid-PVST+ for loop mitigation, HSRP for gateway redundancy, DHCP snooping, and strict extended ACLs partitioning student, faculty, and administration subnets.',
+      imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80',
+      gallery: [
+        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80'
+      ],
+      technologies: ['Cisco Packet Tracer', 'GNS3', 'VLAN 802.1Q', 'OSPFv2', 'Rapid-PVST+', 'HSRP', 'Extended ACL'],
+      githubUrl: '',
+      liveUrl: '',
+      features: [
+        '3-tier hierarchical Core-Distribution-Access network topology',
+        'Subnet segmentation with Inter-VLAN routing via Layer 3 switch',
+        'Gateway redundancy achieved via HSRP failover tests',
+        'Hardened port security and DHCP snooping against rogue servers'
+      ],
+      status: 'Completed',
+      isFeatured: true,
+      startDate: '2023-10',
+      endDate: '2024-01',
+      order: 2
+    },
+    {
+      id: 'proj-3',
+      title: 'Exporton Networks Modern Portfolio Platform',
+      slug: 'exporton-networks-portfolio-platform',
+      category: 'Web Development',
+      shortDescription: 'Production-ready full-stack portfolio & CMS with typed REST APIs, real media uploads, and granular admin control.',
+      fullDescription: 'The current production portfolio platform built from the ground up for Abrar Shah under the Exporton Networks brand. Includes a lightning-fast responsive public web portal, full administrative CRUD dashboard, secure password-hashed authentication, dark/light theme toggle, SEO metadata, and print-ready A4 resume generation.',
+      imageUrl: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=1200&q=80',
+      gallery: [
+        'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=1200&q=80'
+      ],
+      technologies: ['React 19', 'TypeScript', 'Node.js', 'Express', 'Tailwind CSS 4', 'REST API', 'Zod', 'Multer'],
+      githubUrl: '',
+      liveUrl: '',
+      features: [
+        'Complete public interface with real-time database reactivity',
+        'Protected Admin CMS dashboard with full CRUD for all models',
+        'Media upload manager with file validation and preview',
+        'A4 Print-optimized resume layout with download triggers'
+      ],
+      status: 'Completed',
+      isFeatured: true,
+      startDate: '2024-05',
+      endDate: 'Present',
+      order: 3
+    }
+  ];
+
+  const initialCertificates: Certificate[] = [
+    {
+      id: 'cert-1',
+      title: 'Diploma in Information Technology (DIT)',
+      issuingOrg: 'KP Board of Technical Education',
+      issueDate: '2024',
+      credentialId: 'DIT-2024-753',
+      credentialUrl: '',
+      imageUrl: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?auto=format&fit=crop&w=800&q=80',
+      description: 'Awarded Grade A with 753 marks for academic and practical mastery in Information Technology, networking, and software application systems.',
+      order: 1
+    },
+    {
+      id: 'cert-2',
+      title: 'Motor Car Driving with LTV License',
+      issuingOrg: 'Government Licensing Authority',
+      issueDate: '2022',
+      credentialId: 'LTV-LIC-VERIFIED',
+      credentialUrl: '',
+      imageUrl: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?auto=format&fit=crop&w=800&q=80',
+      description: 'Official Light Transport Vehicle (LTV) driving license representing 2+ years of verified on-road driving expertise.',
+      order: 2
+    }
+  ];
+
+  const initialBlogPosts: BlogPost[] = [
+    {
+      id: 'post-1',
+      title: 'Demystifying OSPF: How Link-State Routing Optimizes Enterprise Traffic',
+      slug: 'demystifying-ospf-link-state-routing',
+      excerpt: 'A deep-dive into Dijkstra algorithm, LSA types, OSPF areas, and why link-state outperforms distance-vector protocols.',
+      content: `## What is OSPF?
+Open Shortest Path First (OSPF) is an interior gateway protocol (IGP) based on link-state technology. Unlike distance-vector protocols like RIP that measure cost purely by hop count, OSPF evaluates bandwidth metrics to compute the lowest-cost loop-free path using Dijkstra's Shortest Path First (SPF) algorithm.
+
+### Key OSPF Concepts
+1. **Router ID (RID)**: Uniquely identifies each router in an OSPF autonomous system. Configured explicitly or chosen via highest loopback IP.
+2. **Areas**: OSPF uses a two-tier hierarchy centered around Area 0 (Backbone Area). All non-backbone areas must connect to Area 0 to prevent routing loops.
+3. **Neighbor Adjacency**: Routers discover neighbors by exchanging Hello packets (default interval of 10s on broadcast links).
+
+\`\`\`
+Router(config)# router ospf 1
+Router(config-router)# router-id 1.1.1.1
+Router(config-router)# network 192.168.10.0 0.0.0.255 area 0
+\`\`\`
+
+### Practical Tips for Lab Setup
+- Always use explicit \`router-id\` declarations to prevent election instability when loopbacks flap.
+- Verify MTU sizes across adjacent links — MTU mismatches will stick neighbor states in EXSTART/EXCHANGE!`,
+      coverImageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80',
+      category: 'Networking',
+      tags: ['OSPF', 'Routing', 'Cisco', 'CCNA'],
+      isPublished: true,
+      isFeatured: true,
+      publishedAt: '2024-06-15T10:00:00.000Z',
+      readTimeMinutes: 5,
+      author: 'Abrar Shah',
+      views: 142
+    },
+    {
+      id: 'post-2',
+      title: 'The Power of Python and Netmiko for Network Automation',
+      slug: 'python-netmiko-network-automation',
+      excerpt: 'How to replace manual SSH terminal sessions with automated configuration loops that cut human error to zero.',
+      content: `## Why Automate Network Infrastructure?
+Manual CLI configuration of dozens of network switches is repetitive, prone to typos, and impossible to audit efficiently. With Python's \`netmiko\` library, we can execute multi-device batch configuration safely in seconds.
+
+### Setting Up a Connection Handler
+\`\`\`python
+from netmiko import ConnectHandler
+
+cisco_device = {
+    'device_type': 'cisco_ios',
+    'host': '192.168.1.1',
+    'username': 'admin',
+    'password': 'LabPassword123',
+}
+
+with ConnectHandler(**cisco_device) as net_connect:
+    output = net_connect.send_command('show ip int brief')
+    print(output)
+\`\`\`
+
+### Next Steps with Ansible and Telemetry
+Once basic SSH configuration scripts are solid, moving into declarative playbooks with Ansible and streaming telemetry with gNMI or SNMP enables true modern network observability.`,
+      coverImageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1200&q=80',
+      category: 'Automation',
+      tags: ['Python', 'Netmiko', 'DevNet', 'Automation'],
+      isPublished: true,
+      isFeatured: true,
+      publishedAt: '2024-07-20T14:30:00.000Z',
+      readTimeMinutes: 4,
+      author: 'Abrar Shah',
+      views: 98
+    }
+  ];
+
+  const initialTestimonials: Testimonial[] = [];
+
+  const initialSocialLinks: SocialLink[] = [
+    {
+      id: 'soc-1',
+      platform: 'GitHub',
+      label: 'GitHub',
+      url: 'https://github.com',
+      iconName: 'Github',
+      isActive: true,
+      order: 1
+    },
+    {
+      id: 'soc-2',
+      platform: 'LinkedIn',
+      label: 'LinkedIn',
+      url: 'https://linkedin.com',
+      iconName: 'Linkedin',
+      isActive: true,
+      order: 2
+    },
+    {
+      id: 'soc-3',
+      platform: 'Email',
+      label: 'Email',
+      url: 'mailto:abrarshah2134896@gmail.com',
+      iconName: 'Mail',
+      isActive: true,
+      order: 3
+    },
+    {
+      id: 'soc-4',
+      platform: 'WhatsApp',
+      label: 'WhatsApp',
+      url: 'https://wa.me/923101905776',
+      iconName: 'MessageSquare',
+      isActive: true,
+      order: 4
+    },
+    {
+      id: 'soc-5',
+      platform: 'Facebook',
+      label: 'Facebook',
+      url: 'https://www.facebook.com/abrarshah',
+      iconName: 'Facebook',
+      isActive: true,
+      order: 5
+    },
+    {
+      id: 'soc-6',
+      platform: 'Instagram',
+      label: 'Instagram',
+      url: 'https://www.instagram.com/abrarshah621',
+      iconName: 'Instagram',
+      isActive: true,
+      order: 6
+    },
+    {
+      id: 'soc-7',
+      platform: 'TikTok',
+      label: 'TikTok',
+      url: 'https://www.tiktok.com/@abrarshah1711',
+      iconName: 'TikTok',
+      isActive: true,
+      order: 7
+    }
+  ];
+
+  const initialSettings: SiteSettings = {
+    siteName: 'Abrar Shah - Portfolio & Network Engineering',
+    brandName: 'EXPORTON NETWORKS',
+    tagline: 'Computer Science Student & Networking Enthusiast',
+    metaTitle: 'Abrar Shah | Computer Science & Network Engineering Portfolio',
+    metaDescription: 'Official portfolio of Abrar Shah (Exporton Networks) - BS Computer Science student, network engineering practitioner, CCNA/CCNP learner, and IT specialist.',
+    keywords: 'Abrar Shah, Exporton Networks, Computer Science, Computer Networking, Network Engineer, Cisco Packet Tracer, GNS3, AWKUM, DIT, OSPF, VLAN',
+    ogImageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=80',
+    canonicalUrl: '',
+    analyticsId: '',
+    contactEmail: 'abrarshah2134896@gmail.com',
+    contactPhone: '+92 310 1905776',
+    whatsappNumber: '+92 310 1905776',
+    allowContactForm: true,
+    defaultTheme: 'light'
+  };
+
+  const initialUser: User & { passwordHash: string } = {
+    id: 'user-admin',
+    email: 'admin@exporton.net',
+    name: 'Abrar Shah',
+    role: 'admin',
+    passwordHash: passwordHash,
+    createdAt: new Date().toISOString()
+  };
+
+  return {
+    profile: initialProfile,
+    education: initialEducation,
+    experience: initialExperience,
+    skills: initialSkills,
+    services: initialServices,
+    projects: initialProjects,
+    certificates: initialCertificates,
+    blogPosts: initialBlogPosts,
+    testimonials: initialTestimonials,
+    socialLinks: initialSocialLinks,
+    settings: initialSettings,
+    users: [initialUser],
+    messages: [],
+    media: []
+  };
+}
+
+class Database {
+  private data: DatabaseSchema;
+
+  constructor() {
+    this.data = this.load();
+  }
+
+  private load(): DatabaseSchema {
+    try {
+      if (fs.existsSync(DB_FILE)) {
+        const fileContent = fs.readFileSync(DB_FILE, 'utf-8');
+        const parsed = JSON.parse(fileContent);
+        return parsed;
+      }
+    } catch (err) {
+      console.error('Failed to load database.json, initializing fresh default:', err);
+    }
+
+    const initial = getInitialDatabase();
+    this.saveDirect(initial);
+    return initial;
+  }
+
+  private saveDirect(dataToSave: DatabaseSchema): void {
+    try {
+      const tempPath = `${DB_FILE}.tmp`;
+      fs.writeFileSync(tempPath, JSON.stringify(dataToSave, null, 2), 'utf-8');
+      fs.renameSync(tempPath, DB_FILE);
+    } catch (err) {
+      console.error('Failed to write database file:', err);
+    }
+  }
+
+  public save(): void {
+    this.saveDirect(this.data);
+  }
+
+  public getData(): DatabaseSchema {
+    return this.data;
+  }
+
+  // Helper getters and mutators
+  public getPublicPortfolio(): PortfolioData {
+    return {
+      profile: this.data.profile,
+      education: this.data.education.sort((a, b) => a.order - b.order),
+      experience: this.data.experience.sort((a, b) => a.order - b.order),
+      skills: this.data.skills.sort((a, b) => a.order - b.order),
+      services: this.data.services.filter(s => s.isActive).sort((a, b) => a.order - b.order),
+      projects: this.data.projects.sort((a, b) => a.order - b.order),
+      certificates: this.data.certificates.sort((a, b) => a.order - b.order),
+      blogPosts: this.data.blogPosts.filter(b => b.isPublished).sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()),
+      testimonials: this.data.testimonials.filter(t => t.isPublished).sort((a, b) => a.order - b.order),
+      socialLinks: this.data.socialLinks.filter(s => s.isActive).sort((a, b) => a.order - b.order),
+      settings: this.data.settings
+    };
+  }
+}
+
+export const db = new Database();
